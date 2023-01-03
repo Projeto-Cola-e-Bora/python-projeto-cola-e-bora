@@ -7,7 +7,7 @@ from .permissions import IsUserOwner
 from rest_framework.views import APIView, Response
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
-    
+
 
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -23,11 +23,11 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         instance.is_active = False
         instance.save()
-        
+
 
 class UserLogin(APIView):
     def post(self, req):
-        user = get_object_or_404(User, email = req.data["email"])
+        user = get_object_or_404(User, email=req.data["email"])
         if user.is_active == False:
             user.is_active = True
             user.save()
@@ -36,8 +36,10 @@ class UserLogin(APIView):
 
         serializer = UserSerializer(user)
 
-        return Response ({
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "user": serializer.data
-        })
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": serializer.data,
+            }
+        )
