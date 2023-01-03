@@ -5,12 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Ong
 from .serializers import OngSerializer
-from .permissions import IsAdmOrCreateOnly, IsOwnOng
+from .permissions import IsAuthenticatedOrListOnly, IsOwnOng
 
 
 class OngView(ListCreateAPIView, PageNumberPagination):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated, IsAdmOrCreateOnly]
+    permission_classes = [IsAuthenticatedOrListOnly]
 
     queryset = Ong.objects.all()
     serializer_class = OngSerializer

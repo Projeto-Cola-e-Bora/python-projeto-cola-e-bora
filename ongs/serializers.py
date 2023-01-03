@@ -11,4 +11,5 @@ class OngSerializer(serializers.ModelSerializer):
             "createdAt",
             "updatedAt",
             "user",
+            "balance",
         ]

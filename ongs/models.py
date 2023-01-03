@@ -24,7 +24,7 @@ class Ong(models.Model):
     cnpj = models.CharField(max_length=14, unique=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     category = models.CharField(
         max_length=40,
         choices=OngCategory.choices,
