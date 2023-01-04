@@ -12,3 +12,22 @@ class OngSerializer(serializers.ModelSerializer):
             "updatedAt",
             "user",
         ]
+        extra_kwargs = {
+            "balance": {
+                "write_only": True,
+            }
+        }
+
+
+class OngSerializerToAdm(serializers.ModelSerializer):
+    class Meta:
+        model = Ong
+        fields = "__all__"
+        read_only_fields = [
+            "id",
+            "createdAt",
+            "updatedAt",
+            "user",
+            "balance",
+            "category",
+        ]
