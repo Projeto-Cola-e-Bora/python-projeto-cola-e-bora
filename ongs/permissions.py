@@ -10,6 +10,6 @@ class IsAuthenticatedOrListOnly(BasePermission):
         )
 
 
-class IsOwnOng(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user.id == obj.user.id
+class IsOwnOngOrRetrieveOnly(BasePermission):
+    def has_object_permission(self, request: Request, view, obj):
+        return request.method in SAFE_METHODS or request.user.id == obj.user.id
