@@ -9,6 +9,7 @@ from rest_framework.views import APIView, Response, status
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .permissions import IsAuthenticatedOrListOnly, IsOwnOngOrRetrieveOnly
+from rest_framework import generics
 
 
 class EventView(ListCreateAPIView):
@@ -45,3 +46,8 @@ class EventDetailView(RetrieveUpdateDestroyAPIView):
         event = get_object_or_404(Event, id=event_id)
         event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ListAllEventsView(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer

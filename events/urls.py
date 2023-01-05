@@ -6,4 +6,5 @@ from . import views
 urlpatterns = [
     path("ongs/events/", views.EventView.as_view()),
     path("ongs/events/<event_id>/", views.EventDetailView.as_view()),
+    path("events/", views.ListAllEventsView.as_view()),
 ]
