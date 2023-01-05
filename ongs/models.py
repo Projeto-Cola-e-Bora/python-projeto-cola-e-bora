@@ -1,6 +1,8 @@
 from django.db import models
 import uuid
 
+from users.models import User
+
 
 class OngCategory(models.TextChoices):
     MEIO_AMBIENTE = "meio ambiente"
@@ -31,3 +33,6 @@ class Ong(models.Model):
         default=OngCategory.OUTRO,
     )
     user = models.OneToOneField("users.User", on_delete=models.CASCADE)
+    users = models.ManyToManyField(
+        User, through="donations.Donation", related_name="ongs"
+    )

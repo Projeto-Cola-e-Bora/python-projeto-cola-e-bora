@@ -2,6 +2,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from rest_framework import status
 
 from .models import Ong
 from .serializers import OngSerializer, OngSerializerToAdm
@@ -23,6 +24,15 @@ class OngView(ListCreateAPIView, PageNumberPagination):
         user.is_superuser = True
         user.save()
         return serializer.save(user=user)
+
+    def create(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            return Response(
+                {"detail": "This user already have a ONG created"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().create(request, *args, **kwargs)
 
 
 class OngDetailView(RetrieveUpdateDestroyAPIView):
