@@ -54,7 +54,8 @@ MY_APPS = [
     "ongs",
     "donations",
     "events",
-    "addresses"
+    "addresses",
+    "withdraw"
 ]
 
 
