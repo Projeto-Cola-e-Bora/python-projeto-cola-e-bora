@@ -2,8 +2,6 @@ from rest_framework.permissions import BasePermission
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.request import Request
 
-from events.models import Event
-
 
 class IsAuthenticatedOrListOnly(BasePermission):
     def has_permission(self, request: Request, view):
@@ -15,3 +13,8 @@ class IsAuthenticatedOrListOnly(BasePermission):
 class IsOwnOngOrRetrieveOnly(BasePermission):
     def has_object_permission(self, request: Request, view, obj):
         return request.method in SAFE_METHODS or request.user.id == obj.user.id
+
+
+class IsNotOngOwnerOrRetrieveOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.method in SAFE_METHODS or request.user.id != obj.ong.user.id
