@@ -1,14 +1,22 @@
+from rest_framework import views
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 
 from .models import Ong
 from .serializers import OngSerializer, OngSerializerToAdm
-from .permissions import IsAuthenticatedOrListOnly, IsOwnOngOrRetrieveOnly
+from .permissions import (
+    IsAuthenticatedOrListOnly,
+    IsOwnOngOrRetrieveOnly,
+)
 
 from users.models import User
+from users.serializers import UserSerializer
+from events.models import Event
+from events.serializers import EventSerializer
 
 
 class OngView(ListCreateAPIView, PageNumberPagination):
@@ -58,3 +66,28 @@ class OngDetailView(RetrieveUpdateDestroyAPIView):
         user.is_superuser = False
         user.save()
         instance.delete()
+
+
+class OngEventUsersView(views.APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def check_permissions(self, request):
+        return super().check_permissions(request)
+
+    def get(self, request, event_id):
+        event = Event.objects.get(pk=event_id)
+        if event.ong.id != request.user.ong.id:
+            return views.Response(
+                {"detail": "You do not have access"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        event_serializer = EventSerializer(event)
+        users_serializer = UserSerializer(event.volunteers, many=True)
+        response_data = {
+            **event_serializer.data,
+            "volunteers": [*users_serializer.data],
+        }
+
+        return views.Response(response=response_data, status=status.HTTP_200_OK)
