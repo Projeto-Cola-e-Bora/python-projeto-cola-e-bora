@@ -22,4 +22,5 @@ urlpatterns = [
     path("api/", include("ongs.urls")),
     path("api/", include("events.urls")),
     path("api/", include("donations.urls")),
+    path("api/", include("withdraw.urls")),
 ]
