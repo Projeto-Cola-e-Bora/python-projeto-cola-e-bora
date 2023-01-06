@@ -1,14 +1,11 @@
-from django.shortcuts import render
 from .models import Event
-from addresses.models import Address
 from ongs.models import Ong
-from .serializers import AddressSerializer, EventSerializer
+from .serializers import EventSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView, Response, status
+from rest_framework.views import Response, status
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from .permissions import IsAuthenticatedOrListOnly, IsOwnOngOrRetrieveOnly
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, DestroyAPIView
+from .permissions import IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly
 
 
 class EventView(ListCreateAPIView):
@@ -45,3 +42,36 @@ class EventDetailView(RetrieveUpdateDestroyAPIView):
         event = get_object_or_404(Event, id=event_id)
         event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EventVolunteerView(CreateAPIView, DestroyAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly]
+
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer 
+    
+    def get(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
+        serializer = self.get_serializer(event)
+
+        return Response(serializer.data)
+
+    def post(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
+        self.check_object_permissions(request, event)
+        event.volunteers.add(request.user)        
+
+        return Response(
+            {"message": "User succefully registrated on event."}, 
+            status=status.HTTP_201_CREATED
+        )
+
+    def delete(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
+        self.check_object_permissions(request, event)
+        event.volunteers.remove(request.user)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+

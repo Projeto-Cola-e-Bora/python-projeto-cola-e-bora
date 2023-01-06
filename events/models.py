@@ -15,3 +15,22 @@ class Event(models.Model):
     )
 
     ong = models.ForeignKey("ongs.Ong", on_delete=models.CASCADE, related_name="events")
+    volunteers = models.ManyToManyField(
+        "users.User", 
+        through="events.EventVolunteers",
+        related_name="event_volunteers" 
+    )
+
+
+class EventVolunteers(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    event = models.ForeignKey(
+        "events.Event",
+        on_delete=models.CASCADE,
+        related_name="event_users_events"
+    )
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="user_events"
+    )

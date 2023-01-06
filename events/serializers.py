@@ -4,6 +4,7 @@ from addresses.models import Address
 from events.models import Event
 from addresses.serializers import AddressSerializer
 from ongs.serializers import OngSerializer
+from users.serializers import UserSerializer
 
 from django.forms.models import model_to_dict
 
@@ -15,6 +16,7 @@ class EventSerializer(serializers.Serializer):
     address = AddressSerializer()
     ong = serializers.SerializerMethodField(read_only=True)
     id = serializers.UUIDField(read_only=True)
+    volunteers = serializers.SerializerMethodField('get_number_of_volunteers', read_only=True)
 
     def create(self, validated_data: dict) -> Event:
         address_dict = validated_data.pop("address")
@@ -42,3 +44,6 @@ class EventSerializer(serializers.Serializer):
 
         instance.save()
         return instance
+    
+    def get_number_of_volunteers(self, obj):
+        return obj.volunteers.count()
