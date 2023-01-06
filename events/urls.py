@@ -8,4 +8,5 @@ urlpatterns = [
     path("ongs/events/<event_id>/", views.EventDetailView.as_view()),
     path("events/<event_id>/", views.EventVolunteerView.as_view()),
     path("events/", views.AllEventsView.as_view()),
+    path("events/ongs/<ong_id>/", views.EventsOngView.as_view()),
 ]

@@ -1,6 +1,7 @@
 from .models import Event
 from ongs.models import Ong
-from .serializers import EventSerializer
+from ongs.serializers import OngSerializer
+from .serializers import EventSerializer, AllEventsSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import Response, status
 from django.shortcuts import get_object_or_404
@@ -85,4 +86,17 @@ class EventVolunteerView(CreateAPIView, DestroyAPIView):
 class AllEventsView(ListAPIView):
 
     queryset = Event.objects.all()
-    serializer_class = EventSerializer
+    serializer_class = AllEventsSerializer
+
+
+class EventsOngView(RetrieveAPIView):
+
+    queryset = Event.objects.all()
+    serializer_class = AllEventsSerializer
+
+    def get(self, request, ong_id):
+        ong = get_object_or_404(Ong, id=ong_id)
+        event = Event.objects.filter(ong=ong)
+
+        serializer = AllEventsSerializer(event, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

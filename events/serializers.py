@@ -49,3 +49,11 @@ class EventSerializer(serializers.Serializer):
 
     def get_number_of_volunteers(self, obj):
         return obj.volunteers.count()
+
+
+class AllEventsSerializer(serializers.ModelSerializer):
+    address = AddressSerializer()
+
+    class Meta:
+        model = Event
+        fields = ["id", "name", "date", "description", "address", "ong"]
