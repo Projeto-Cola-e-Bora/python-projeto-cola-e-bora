@@ -52,6 +52,7 @@ THIRD_PARTY_APPS = [
 MY_APPS = [
     "users",
     "ongs",
+    "payments"
     "donations",
     "events",
     "addresses"
