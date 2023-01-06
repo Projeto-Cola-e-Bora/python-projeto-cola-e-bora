@@ -1,10 +1,18 @@
 from .models import Event
 from ongs.models import Ong
-from .serializers import EventSerializer
+from ongs.serializers import OngSerializer
+from .serializers import EventSerializer, AllEventsSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import Response, status
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, DestroyAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    CreateAPIView,
+    RetrieveAPIView,
+    DestroyAPIView,
+    ListAPIView,
+)
 from .permissions import IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly
 
 
@@ -49,8 +57,8 @@ class EventVolunteerView(CreateAPIView, DestroyAPIView):
     permission_classes = [IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly]
 
     queryset = Event.objects.all()
-    serializer_class = EventSerializer 
-    
+    serializer_class = EventSerializer
+
     def get(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         serializer = self.get_serializer(event)
@@ -60,11 +68,11 @@ class EventVolunteerView(CreateAPIView, DestroyAPIView):
     def post(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         self.check_object_permissions(request, event)
-        event.volunteers.add(request.user)        
+        event.volunteers.add(request.user)
 
         return Response(
-            {"message": "User succefully registrated on event."}, 
-            status=status.HTTP_201_CREATED
+            {"message": "User succefully registrated on event."},
+            status=status.HTTP_201_CREATED,
         )
 
     def delete(self, request, event_id):
@@ -75,3 +83,20 @@ class EventVolunteerView(CreateAPIView, DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class AllEventsView(ListAPIView):
+
+    queryset = Event.objects.all()
+    serializer_class = AllEventsSerializer
+
+
+class EventsOngView(RetrieveAPIView):
+
+    queryset = Event.objects.all()
+    serializer_class = AllEventsSerializer
+
+    def get(self, request, ong_id):
+        ong = get_object_or_404(Ong, id=ong_id)
+        event = Event.objects.filter(ong=ong)
+
+        serializer = AllEventsSerializer(event, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
