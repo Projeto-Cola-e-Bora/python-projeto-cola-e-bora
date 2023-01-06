@@ -1,15 +1,21 @@
 from django.shortcuts import render
 from .models import Event
+from ongs.models import Ong
 from addresses.models import Address
 from ongs.models import Ong
-from .serializers import AddressSerializer, EventSerializer
+from ongs.serializers import OngSerializer
+from .serializers import AddressSerializer, EventSerializer, AllEventsSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+)
 from .permissions import IsAuthenticatedOrListOnly, IsOwnOngOrRetrieveOnly
-from rest_framework import generics
 
 
 class EventView(ListCreateAPIView):
@@ -48,6 +54,14 @@ class EventDetailView(RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListAllEventsView(generics.ListAPIView):
+class ListAllEventsView(ListAPIView):
+
     queryset = Event.objects.all()
-    serializer_class = EventSerializer
+    serializer_class = AllEventsSerializer
+
+
+class ListEventsOngView(RetrieveAPIView):
+    def retrieve(self, request, ong_id):
+        ong = get_object_or_404(Ong, id=ong_id)
+        serializer = OngSerializer(ong)
+        return Response(serializer.data, status=status.HTTP_200_OK)

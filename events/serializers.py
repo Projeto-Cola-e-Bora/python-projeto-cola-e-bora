@@ -42,3 +42,9 @@ class EventSerializer(serializers.Serializer):
 
         instance.save()
         return instance
+
+
+class AllEventsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        exclude = ["ong"]
