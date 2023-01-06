@@ -10,6 +10,7 @@ from rest_framework.generics import (
     CreateAPIView,
     RetrieveAPIView,
     DestroyAPIView,
+    ListAPIView,
 )
 from .permissions import IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly
 
@@ -79,3 +80,9 @@ class EventVolunteerView(CreateAPIView, DestroyAPIView):
         event.volunteers.remove(request.user)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AllEventsView(ListAPIView):
+
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer

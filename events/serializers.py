@@ -16,7 +16,9 @@ class EventSerializer(serializers.Serializer):
     address = AddressSerializer()
     ong = serializers.SerializerMethodField(read_only=True)
     id = serializers.UUIDField(read_only=True)
-    volunteers = serializers.SerializerMethodField('get_number_of_volunteers', read_only=True)
+    volunteers = serializers.SerializerMethodField(
+        "get_number_of_volunteers", read_only=True
+    )
 
     def create(self, validated_data: dict) -> Event:
         address_dict = validated_data.pop("address")
@@ -44,15 +46,6 @@ class EventSerializer(serializers.Serializer):
 
         instance.save()
         return instance
-<<<<<<< HEAD
 
-
-class AllEventsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Event
-        exclude = ["ong"]
-=======
-    
     def get_number_of_volunteers(self, obj):
         return obj.volunteers.count()
->>>>>>> 1cf4f2b7c5d366787918403db21ce04f3f30d879
