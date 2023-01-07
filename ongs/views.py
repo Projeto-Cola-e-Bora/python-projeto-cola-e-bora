@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import views
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -16,7 +18,7 @@ from .permissions import (
 from users.models import User
 from users.serializers import UserSerializer
 from events.models import Event
-from events.serializers import EventSerializer
+from events.serializers import EventSerializer, AllEventsSerializer
 
 
 class OngView(ListCreateAPIView, PageNumberPagination):
@@ -72,22 +74,19 @@ class OngEventUsersView(views.APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
 
-    def check_permissions(self, request):
-        return super().check_permissions(request)
-
     def get(self, request, event_id):
-        event = Event.objects.get(pk=event_id)
+        event = get_object_or_404(Event, pk=event_id)
         if event.ong.id != request.user.ong.id:
             return views.Response(
                 {"detail": "You do not have access"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        event_serializer = EventSerializer(event)
+        event_serializer = AllEventsSerializer(event)
         users_serializer = UserSerializer(event.volunteers, many=True)
         response_data = {
             **event_serializer.data,
             "volunteers": [*users_serializer.data],
         }
 
-        return views.Response(response=response_data, status=status.HTTP_200_OK)
+        return views.Response(response_data, status=status.HTTP_200_OK)

@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -21,7 +23,7 @@ class DonationView(ListCreateAPIView, PageNumberPagination):
 
     def get(self, request, pk, *args, **kwargs):
         user = request.user
-        ong = Ong.objects.get(pk=pk)
+        ong = get_object_or_404(Ong, pk=pk)
         if ong.user.id != user.id:
             return Response(
                 {"detail": "Not authorizated"}, status=status.HTTP_401_UNAUTHORIZED
@@ -34,7 +36,7 @@ class DonationView(ListCreateAPIView, PageNumberPagination):
 
     def create(self, request, pk, *args, **kwargs):
         user = request.user
-        ong = Ong.objects.get(pk=pk)
+        ong = get_object_or_404(Ong, pk=pk)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
