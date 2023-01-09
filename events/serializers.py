@@ -4,8 +4,7 @@ from addresses.models import Address
 from events.models import Event
 from addresses.serializers import AddressSerializer
 from ongs.serializers import OngSerializer
-from users.serializers import UserSerializer
-
+from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
 
 
@@ -21,15 +20,12 @@ class EventSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data: dict) -> Event:
-        address_dict = validated_data.pop("address")
 
+        address_dict = validated_data.pop("address")
         address_obj, address_created = Address.objects.get_or_create(**address_dict)
 
         event = Event.objects.create(**validated_data, address=address_obj)
         return event
-
-    def get_ong(self, obj):
-        return model_to_dict(obj.ong)
 
     def update(self, instance, validated_data):
         address_dict = validated_data.pop("address", None)
@@ -46,6 +42,9 @@ class EventSerializer(serializers.Serializer):
 
         instance.save()
         return instance
+
+    def get_ong(self, obj):
+        return dict({"id": obj.ong.id, "name": obj.ong.name, "email": obj.ong.email})
 
     def get_number_of_volunteers(self, obj):
         return obj.volunteers.count()

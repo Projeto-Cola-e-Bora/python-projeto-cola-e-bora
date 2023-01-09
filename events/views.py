@@ -14,6 +14,8 @@ from rest_framework.generics import (
     ListAPIView,
 )
 from .permissions import IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from .errors import ValidationDateError
 
 
 class EventView(ListCreateAPIView):
@@ -27,10 +29,24 @@ class EventView(ListCreateAPIView):
     def post(self, request):
         serializer = EventSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        ong = Ong.objects.get(id=request.data["ong_id"])
-        serializer.save(ong=ong)
-        return Response(serializer.data, status=201)
+        try:
+            ong = Ong.objects.get(id=request.data["ong_id"])
+            serializer.save(ong=ong)
+            return Response(serializer.data, status=201)
+        except ObjectDoesNotExist:
+            return Response(
+                {"message": "Ong not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationDateError:
+            return Response(
+                {"message": "The event date cannot be a past date"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError:
+            return Response(
+                {"message": "Id must have a valid UUID format"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 class EventDetailView(RetrieveUpdateDestroyAPIView):
@@ -39,16 +55,36 @@ class EventDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticatedOrListOnly]
 
     def patch(self, request, event_id):
-        event = get_object_or_404(Event, id=event_id)
-        serializer = EventSerializer(event, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            event = Event.objects.get(id=event_id)
+            serializer = EventSerializer(event, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        except ObjectDoesNotExist:
+            return Response(
+                {"message": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationError:
+            return Response(
+                {"message": "Id must have a valid UUID format"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         return Response(serializer.data)
 
     def delete(self, request, event_id):
-        event = get_object_or_404(Event, id=event_id)
-        event.delete()
+        try:
+            event = Event.objects.get(id=event_id)
+            event.delete()
+        except ObjectDoesNotExist:
+            return Response(
+                {"message": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationError:
+            return Response(
+                {"message": "Id must have a valid UUID format"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
