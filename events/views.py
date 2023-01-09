@@ -5,8 +5,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
     RetrieveAPIView,
     ListAPIView,
 )
@@ -29,16 +27,16 @@ class EventView(APIView):
             return Response(serializer.data, status=201)
         except ObjectDoesNotExist:
             return Response(
-                {"message": "Ong not found"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "Ong not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except ValidationDateError:
             return Response(
-                {"message": "The event date cannot be a past date"},
+                {"detail": "The event date cannot be a past date"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError:
             return Response(
-                {"message": "Id must have a valid UUID format"},
+                {"detail": "Id must have a valid UUID format"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -56,16 +54,16 @@ class EventDetailView(APIView):
             serializer.save()
         except ObjectDoesNotExist:
             return Response(
-                {"message": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "Event not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except ValidationDateError:
             return Response(
-                {"message": "The event date cannot be a past date"},
+                {"detail": "The event date cannot be a past date"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError:
             return Response(
-                {"message": "Id must have a valid UUID format"},
+                {"detail": "Id must have a valid UUID format"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -77,11 +75,11 @@ class EventDetailView(APIView):
             event.delete()
         except ObjectDoesNotExist:
             return Response(
-                {"message": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "Event not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except ValidationError:
             return Response(
-                {"message": "Id must have a valid UUID format"},
+                {"detail": "Id must have a valid UUID format"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -115,14 +113,14 @@ class EventVolunteerView(APIView):
                 if(event_date_format > (i['event_time'] + timedelta(minutes=-60)) 
                 and event_date_format < (i['event_time'] + timedelta(minutes=+60))):
                     return Response(
-                        {"message": "You are already registered for an event at the same time"},
+                        {"detail": "You are already registered for an event at the same time"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
             
         event.volunteers.add(request.user)
 
         return Response(
-            {"message": "User succefully registrated on event."},
+            {"detail": "User succefully registrated on event."},
             status=status.HTTP_201_CREATED,
         )
 
