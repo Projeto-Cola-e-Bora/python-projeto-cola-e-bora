@@ -22,8 +22,6 @@ class EventSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data: dict) -> Event:
-        # if self.date < datetime.date.today():
-        #     raise ValidationError("The date cannot be in the past!")
 
         address_dict = validated_data.pop("address")
         address_obj, address_created = Address.objects.get_or_create(**address_dict)
@@ -47,6 +45,9 @@ class EventSerializer(serializers.Serializer):
         instance.save()
         return instance
 
+    def get_ong(self, obj):
+        return dict({"id": obj.ong.id, "name": obj.ong.name, "email": obj.ong.email})
+
     def get_number_of_volunteers(self, obj):
         return obj.volunteers.count()
 
@@ -57,6 +58,3 @@ class AllEventsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ["id", "name", "date", "description", "address", "ong"]
-
-    def get_ong(self, obj):
-        return dict({"id": obj.ong.id, "name": obj.ong.name, "email": obj.ong.email})

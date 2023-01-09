@@ -23,6 +23,13 @@ class Event(models.Model):
         "users.User", through="events.EventVolunteers", related_name="event_volunteers"
     )
 
+    def save(self, *args, **kwargs):
+        tz_offset = -8.0
+        tzinfo = timezone(timedelta(hours=tz_offset))
+        if self.date < datetime.datetime.now(tzinfo):
+            raise ValidationDateError("The event date cannot be a past date")
+        super(Event, self).save(*args, **kwargs)
+
 
 class EventVolunteers(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
@@ -32,10 +39,3 @@ class EventVolunteers(models.Model):
     user = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="user_events"
     )
-
-    def save(self, *args, **kwargs):
-        tz_offset = -8.0
-        tzinfo = timezone(timedelta(hours=tz_offset))
-        if self.date < datetime.datetime.now(tzinfo):
-            raise ValidationDateError("The event date cannot be a past date")
-        super(Event, self).save(*args, **kwargs)
