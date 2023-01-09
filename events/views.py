@@ -1,25 +1,22 @@
-from .models import Event
+from .models import Event, EventVolunteers
 from ongs.models import Ong
-from ongs.serializers import OngSerializer
-from .serializers import EventSerializer, AllEventsSerializer
+from .serializers import EventSerializer, EventVolunteersSerializer, AllEventsSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
-    CreateAPIView,
     RetrieveAPIView,
-    DestroyAPIView,
     ListAPIView,
 )
 from .permissions import IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly
+from datetime import datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from .errors import ValidationDateError
 
 
 class EventView(APIView):
-
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticatedOrListOnly]
 
@@ -90,22 +87,38 @@ class EventDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EventVolunteerView(CreateAPIView, DestroyAPIView):
+class EventVolunteerView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly]
 
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
 
     def get(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
-        serializer = self.get_serializer(event)
+        serializer = EventSerializer(event)
 
         return Response(serializer.data)
 
     def post(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         self.check_object_permissions(request, event)
+
+        registrated_user_events = EventVolunteers.objects.filter(user=request.user)
+
+        serialized_event = AllEventsSerializer(event)
+        serialized_user_events = EventVolunteersSerializer(registrated_user_events, many=True)
+
+        event_date = serialized_event.data['date']
+        event_date_format = datetime.fromisoformat(event_date)
+
+        if len(serialized_user_events.data) > 0:
+            for i in serialized_user_events.data:
+                if(event_date_format > (i['event_time'] + timedelta(minutes=-60)) 
+                and event_date_format < (i['event_time'] + timedelta(minutes=+60))):
+                    return Response(
+                        {"message": "You are already registered for an event at the same time"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
         event.volunteers.add(request.user)
 
         return Response(
