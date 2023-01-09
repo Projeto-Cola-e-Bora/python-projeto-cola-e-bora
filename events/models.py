@@ -34,3 +34,5 @@ class EventVolunteers(models.Model):
         on_delete=models.CASCADE,
         related_name="user_events"
     )
+    
+

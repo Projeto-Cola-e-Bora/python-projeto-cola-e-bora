@@ -1,11 +1,8 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 from addresses.models import Address
 from events.models import Event
 from addresses.serializers import AddressSerializer
-from ongs.serializers import OngSerializer
 from users.serializers import UserSerializer
-
 from django.forms.models import model_to_dict
 
 
@@ -49,6 +46,16 @@ class EventSerializer(serializers.Serializer):
 
     def get_number_of_volunteers(self, obj):
         return obj.volunteers.count()
+
+
+class EventVolunteersSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    user = UserSerializer()
+    event = EventSerializer()
+    event_time = serializers.SerializerMethodField()
+
+    def get_event_time(self, obj):
+        return obj.event.date
 
 
 class AllEventsSerializer(serializers.ModelSerializer):
