@@ -5,8 +5,6 @@ from events.models import Event
 from addresses.serializers import AddressSerializer
 from ongs.serializers import OngSerializer
 from django.core.exceptions import ValidationError
-import datetime
-
 from django.forms.models import model_to_dict
 
 
