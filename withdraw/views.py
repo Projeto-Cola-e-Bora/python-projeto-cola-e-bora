@@ -6,6 +6,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from users.permissions import IsUserOwner
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response, status
+from django.shortcuts import get_object_or_404
 
 
 class WithdrawView(generics.ListCreateAPIView):
@@ -18,16 +19,24 @@ class WithdrawView(generics.ListCreateAPIView):
 
     def create(self, request, pk):
         user = request.user
-        ong = Ong.objects.get(pk=pk)
+        ong = get_object_or_404(Ong, pk=pk)
+
+        if ong.user.id != user.id:
+            return Response(
+                {"detail": "Not authorizated"}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer, user, ong)
+
         result_ong_balance = self.updateOngBalance(serializer.data["value"], ong)
         if result_ong_balance == "insufficient funds":
             return Response({"detail": "Insufficient funds"}, status=status.HTTP_401_UNAUTHORIZED
         )
+
         headers = self.get_success_headers(serializer.data)
+
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
@@ -45,7 +54,8 @@ class WithdrawView(generics.ListCreateAPIView):
     
     def get(self, request, pk):
         user = request.user
-        ong = Ong.objects.get(pk=pk)
+        
+        ong = get_object_or_404(Ong, pk=pk)
         if ong.user.id != user.id:
             return Response(
                 {"detail": "Not authorizated"}, status=status.HTTP_401_UNAUTHORIZED
