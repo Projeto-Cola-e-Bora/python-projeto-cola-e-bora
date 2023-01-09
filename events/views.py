@@ -2,7 +2,7 @@ from .models import Event, EventVolunteers
 from ongs.models import Ong
 from .serializers import EventSerializer, EventVolunteersSerializer, AllEventsSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.views import Response, status, APIView
+from rest_framework.views import APIView, Response, status
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -16,14 +16,9 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from .errors import ValidationDateError
 
 
-
-class EventView(ListCreateAPIView):
-
+class EventView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticatedOrListOnly]
-
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
 
     def post(self, request):
         serializer = EventSerializer(data=request.data)
@@ -48,7 +43,7 @@ class EventView(ListCreateAPIView):
             )
 
 
-class EventDetailView(RetrieveUpdateDestroyAPIView):
+class EventDetailView(APIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticatedOrListOnly]
@@ -62,6 +57,11 @@ class EventDetailView(RetrieveUpdateDestroyAPIView):
         except ObjectDoesNotExist:
             return Response(
                 {"message": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationDateError:
+            return Response(
+                {"message": "The event date cannot be a past date"},
+                status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError:
             return Response(
