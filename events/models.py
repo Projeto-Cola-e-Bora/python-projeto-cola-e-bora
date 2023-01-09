@@ -1,5 +1,9 @@
 from django.db import models
 import uuid
+from django.core.exceptions import ValidationError
+import datetime
+from datetime import timezone, timedelta
+from .errors import ValidationDateError
 
 
 class Event(models.Model):
@@ -16,21 +20,22 @@ class Event(models.Model):
 
     ong = models.ForeignKey("ongs.Ong", on_delete=models.CASCADE, related_name="events")
     volunteers = models.ManyToManyField(
-        "users.User", 
-        through="events.EventVolunteers",
-        related_name="event_volunteers" 
+        "users.User", through="events.EventVolunteers", related_name="event_volunteers"
     )
 
 
 class EventVolunteers(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     event = models.ForeignKey(
-        "events.Event",
-        on_delete=models.CASCADE,
-        related_name="event_users_events"
+        "events.Event", on_delete=models.CASCADE, related_name="event_users_events"
     )
     user = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        related_name="user_events"
+        "users.User", on_delete=models.CASCADE, related_name="user_events"
     )
+
+    def save(self, *args, **kwargs):
+        tz_offset = -8.0
+        tzinfo = timezone(timedelta(hours=tz_offset))
+        if self.date < datetime.datetime.now(tzinfo):
+            raise ValidationDateError("The event date cannot be a past date")
+        super(Event, self).save(*args, **kwargs)
