@@ -5,8 +5,6 @@ from events.models import Event
 from addresses.serializers import AddressSerializer
 from ongs.serializers import OngSerializer
 from django.core.exceptions import ValidationError
-import datetime
-
 from django.forms.models import model_to_dict
 
 
@@ -19,8 +17,6 @@ class EventSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
 
     def create(self, validated_data: dict) -> Event:
-        # if self.date < datetime.date.today():
-        #     raise ValidationError("The date cannot be in the past!")
 
         address_dict = validated_data.pop("address")
         address_obj, address_created = Address.objects.get_or_create(**address_dict)
