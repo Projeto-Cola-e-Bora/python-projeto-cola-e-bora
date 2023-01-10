@@ -12,7 +12,8 @@ from .permissions import IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly
 from datetime import datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from .errors import ValidationDateError
-
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 class EventView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -89,12 +90,27 @@ class EventVolunteerView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticatedOrListOnly, IsNotOngOwnerOrRetrieveOnly]
 
+    @extend_schema(
+        operation_id = 'event_detail', 
+        request=None,
+        responses={200: EventSerializer}, 
+        description = 'Rota para obter detalhes do evento', 
+        exclude = False
+    )
 
     def get(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         serializer = EventSerializer(event)
 
         return Response(serializer.data)
+
+    @extend_schema(
+        operation_id = 'event_volunteer', 
+        request=None,
+        responses={(201, 'application/json'): OpenApiTypes.STR }, 
+        description = 'Rota para cadastro de usuário em evento', 
+        exclude = False
+    )
 
     def post(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
@@ -123,6 +139,14 @@ class EventVolunteerView(APIView):
             {"detail": "User succefully registrated on event."},
             status=status.HTTP_201_CREATED,
         )
+
+    @extend_schema(
+        operation_id = 'event_volunteer_delete', 
+        request=None,
+        responses={(204, 'application/json'): None }, 
+        description = 'Rota para cancelar participação no evento', 
+        exclude = False
+    )
 
     def delete(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
