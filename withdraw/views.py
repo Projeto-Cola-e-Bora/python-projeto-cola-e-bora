@@ -47,7 +47,7 @@ class WithdrawView(generics.ListCreateAPIView):
     def updateOngBalance(self, value, ong: Ong):
         new_balance = float(ong.balance) - float(value)
         if new_balance < 0:
-            return ({"detail": "insufficient funds"})
+            return ("insufficient funds")
         ong.balance = new_balance
         ong.save()
 
