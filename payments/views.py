@@ -1,16 +1,18 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView, CreateAPIView
 from rest_framework.response import Response
 from django.db import IntegrityError
 from rest_framework.views import status, exception_handler
 from django.shortcuts import get_object_or_404
+from events.errors import ValidationDateError
+from datetime import datetime
 
 from .models import PaymentInfo
 from .serializers import PaymentInfoSerializer, UpdatePaymentInfoSerializer, PaymentInfoErrorSerializer
 from users.models import User
 
-class PaymentView(ListCreateAPIView):
+class PaymentView(CreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -22,7 +24,13 @@ class PaymentView(ListCreateAPIView):
         payment = PaymentInfo.objects.filter(user= user)
 
         if not payment:
-            return super().post(request, *args, **kwargs)
+            present = datetime.now()
+            date_str_list = self.request.data['due_date'].split('-')
+            due_date = datetime(int(date_str_list[0]), int(date_str_list[1]), int(date_str_list[2]),)
+            if present < due_date:
+                return super().post(request, *args, **kwargs)
+
+            return Response(data={'message': 'Payment method expired'}, status= status.HTTP_400_BAD_REQUEST)
 
         return Response(data= {'message': 'User already has a registered payment method'}, status= status.HTTP_403_FORBIDDEN)
 
