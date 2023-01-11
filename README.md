@@ -4,7 +4,7 @@
 
 
 ### Endpoints:
-<b>URL base da API: https://api-cola-e-bora.onrender.com </b>
+<b>URL base da API: https://api-cola-e-bora.onrender.com/api </b>
 
 ---
 
