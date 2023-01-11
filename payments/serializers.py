@@ -5,14 +5,15 @@ from rest_framework.views import status, exception_handler
 
 
 class PaymentInfoSerializer(serializers.ModelSerializer):
-    user_id = serializers.SerializerMethodField(method_name='get_user_id')
+    #user_id = serializers.SerializerMethodField(method_name='get_user_id')
 
-    def get_user_id(self, obj: PaymentInfo) -> str:
-        return obj.user.id
+    #def get_user_id(self, obj: PaymentInfo) -> str:
+        #return obj.user.id
 
     class Meta:
         model = PaymentInfo
-        fields = ['id', 'number', 'security_code', 'due_date', 'user_id']
+        fields = ['id', 'number', 'security_code', 'due_date', 'user',]
+        read_only_fields = ['user']
 
 class UpdatePaymentInfoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,3 +23,6 @@ class UpdatePaymentInfoSerializer(serializers.ModelSerializer):
             'id',
             'user',
         ]
+
+class PaymentInfoErrorSerializer(serializers.Serializer):
+    message: serializers.CharField()
