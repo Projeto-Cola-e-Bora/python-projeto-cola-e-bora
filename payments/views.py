@@ -7,7 +7,7 @@ from rest_framework.views import status, exception_handler
 from django.shortcuts import get_object_or_404
 
 from .models import PaymentInfo
-from .serializers import PaymentInfoSerializer, UpdatePaymentInfoSerializer
+from .serializers import PaymentInfoSerializer, UpdatePaymentInfoSerializer, PaymentInfoErrorSerializer
 from users.models import User
 
 class PaymentView(ListCreateAPIView):
@@ -17,8 +17,18 @@ class PaymentView(ListCreateAPIView):
     queryset = PaymentInfo.objects.all()
     serializer_class = PaymentInfoSerializer
 
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=self.kwargs['user_id'])
+        payment = PaymentInfo.objects.filter(user= user)
+
+        if not payment:
+            return super().post(request, *args, **kwargs)
+
+        return Response(data= {'message': 'User already has a registered payment method'}, status= status.HTTP_403_FORBIDDEN)
+
     def perform_create(self, serializer):
         user = User.objects.get(id=self.kwargs['user_id'])
+        
         return serializer.save(user=user)
 
 class PaymentDetailView(RetrieveUpdateDestroyAPIView):
